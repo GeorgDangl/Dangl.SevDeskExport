@@ -1,0 +1,340 @@
+[
+  {
+    "RelativeUrl": "Contact",
+    "ModelName": "Contact",
+    "AdditionalParameters": {
+      "embed": "category",
+      "depth": "1"
+    }
+  },
+  {
+    "RelativeUrl": "Contact/{id}/getCommunicationWays",
+    "ModelName": "CommunicationWays",
+    "PathReplacement": {
+      "BaseModel": "Contact",
+      "ObjectProperty": "id",
+      "UrlParameterName": "id"
+    }
+  },
+  {
+    "RelativeUrl": "Contact/{id}/getAddresses",
+    "ModelName": "Addresses",
+    "PathReplacement": {
+      "BaseModel": "Contact",
+      "ObjectProperty": "id",
+      "UrlParameterName": "id"
+    }
+  },
+  {
+    "RelativeUrl": "Invoice",
+    "ModelName": "Invoice",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Invoice/{id}/getPositions",
+    "ModelName": "InvoicePositions",
+    "PathReplacement": {
+      "BaseModel": "Invoice",
+      "ObjectProperty": "id",
+      "UrlParameterName": "id"
+    }
+  },
+  {
+    "RelativeUrl": "InvoicePos",
+    "ModelName": "InvoicePos",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Order",
+    "ModelName": "Order",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Order/{id}/getPositions",
+    "ModelName": "OrderPositions",
+    "PathReplacement": {
+      "BaseModel": "Order",
+      "ObjectProperty": "id",
+      "UrlParameterName": "id"
+    }
+  },
+  {
+    "RelativeUrl": "OrderPos",
+    "ModelName": "OrderPos",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Unity",
+    "ModelName": "Unity",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Task",
+    "ModelName": "Task",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Feed",
+    "ModelName": "Feed",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Part",
+    "ModelName": "Part",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Voucher",
+    "ModelName": "Voucher",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "PaymentMethod",
+    "ModelName": "PaymentMethod",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Discounts",
+    "ModelName": "Discounts",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "AccountingContact",
+    "ModelName": "AccountingContact",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "AccountingType",
+    "ModelName": "AccountingType",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "AccountingSystemNumber",
+    "ModelName": "AccountingSystemNumber",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Asset",
+    "ModelName": "Asset",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "AssetPos",
+    "ModelName": "AssetPos",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Category",
+    "ModelName": "Category",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "CheckAccount",
+    "ModelName": "CheckAccount",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "CheckAccountTransaction",
+    "ModelName": "CheckAccountTransaction",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "CheckAccountTransactionLog",
+    "ModelName": "CheckAccountTransactionLog",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "CommunicationWay",
+    "ModelName": "CommunicationWay",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "VoucherPos",
+    "ModelName": "VoucherPos",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "ContactAddress",
+    "ModelName": "ContactAddress",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "CostCentre",
+    "ModelName": "CostCentre",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Document",
+    "ModelName": "Document",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "DocumentFolder",
+    "ModelName": "DocumentFolder",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Email",
+    "ModelName": "Email",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "InvoiceLog",
+    "ModelName": "InvoiceLog",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "OrderLog",
+    "ModelName": "OrderLog",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "PartUnity",
+    "ModelName": "PartUnity",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "PartContactPrice",
+    "ModelName": "PartContactPrice",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "AccountingCorrection",
+    "ModelName": "AccountingCorrection",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "AccountingIndex",
+    "ModelName": "AccountingIndex",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "AccountingSystem",
+    "ModelName": "AccountingSystem",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "SevUser",
+    "ModelName": "SevUser",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "StaticCountry",
+    "ModelName": "StaticCountry",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "SubscriptionHistory",
+    "ModelName": "SubscriptionHistory",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "SubscriptionType",
+    "ModelName": "SubscriptionType",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "TaxSet",
+    "ModelName": "TaxSet",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "TextTemplate",
+    "ModelName": "TextTemplate",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "VoucherLog",
+    "ModelName": "VoucherLog",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  },
+  {
+    "RelativeUrl": "Letter",
+    "ModelName": "Letter",
+    "AdditionalParameters": {
+      "embed": "category"
+    }
+  }
+]
