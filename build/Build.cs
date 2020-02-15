@@ -8,16 +8,19 @@ using Nuke.Common.Tools.DocFX;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
+using Nuke.GitHub;
 using Nuke.WebDocu;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using static Nuke.Common.ChangeLog.ChangelogTasks;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.IO.TextTasks;
 using static Nuke.Common.Tools.DocFX.DocFXTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
+using static Nuke.GitHub.GitHubTasks;
 using static Nuke.WebDocu.WebDocuTasks;
 
 [CheckBuildProjectConfigurations]
@@ -31,6 +34,7 @@ class Build : NukeBuild
 
     [Parameter] readonly string DocuApiKey;
     [Parameter] readonly string DocuBaseUrl = "https://docs.dangl-it.com";
+    [Parameter] readonly string GitHubAuthenticationToken;
 
     [Solution] readonly Solution Solution;
     [GitRepository] readonly GitRepository GitRepository;
@@ -138,6 +142,30 @@ namespace Dangl.SevDeskExport
                 new [] { "CLI_Windows_x64", "win-x64"},
                 new [] { "CLI_Linux_Ubuntu_x86", "ubuntu-x64"}
              };
+
+    Target PublishGitHubRelease => _ => _
+         .Requires(() => GitHubAuthenticationToken)
+         .OnlyWhenDynamic(() => GitVersion.BranchName.Equals("master") || GitVersion.BranchName.Equals("origin/master"))
+         .Executes(async () =>
+         {
+             var releaseTag = $"v{GitVersion.MajorMinorPatch}";
+
+             var changeLogSectionEntries = ExtractChangelogSectionNotes(ChangeLogFile);
+             var latestChangeLog = changeLogSectionEntries
+                 .Aggregate((c, n) => c + Environment.NewLine + n);
+             var completeChangeLog = $"## {releaseTag}" + Environment.NewLine + latestChangeLog;
+
+             var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
+
+             await PublishRelease(x => x
+                     .SetCommitSha(GitVersion.Sha)
+                     .SetReleaseNotes(completeChangeLog)
+                     .SetRepositoryName(repositoryInfo.repositoryName)
+                     .SetRepositoryOwner(repositoryInfo.gitHubOwner)
+                     .SetTag(releaseTag)
+                     .SetToken(GitHubAuthenticationToken));
+         });
+
     Target BuildDocFxMetadata => _ => _
         .DependsOn(Clean)
         .Executes(() =>
