@@ -40,6 +40,7 @@ class Build : NukeBuild
     AbsolutePath TestsDirectory => RootDirectory / "tests";
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath DocFxFile => RootDirectory / "docfx.json";
+    AbsolutePath ChangeLogFile => RootDirectory / "CHANGELOG.md";
 
     Target Clean => _ => _
         .Before(Restore)
@@ -179,11 +180,14 @@ namespace Dangl.SevDeskExport
          .Requires(() => DocuBaseUrl)
          .Executes(() =>
          {
+             var markdownChangelog = ReadAllText(ChangeLogFile);
+
              WebDocu(s => s
                  .SetDocuBaseUrl(DocuBaseUrl)
                  .SetDocuApiKey(DocuApiKey)
                  .SetSourceDirectory(OutputDirectory / "docs")
                  .SetVersion(GitVersion.NuGetVersion)
+                 .SetMarkdownChangelog(markdownChangelog)
                  .SetAssetFilePaths(PublishTargets.Select(t => (OutputDirectory / $"{t[0]}.zip").ToString()).ToArray())
              );
          });
