@@ -16,3 +16,9 @@ The data will be exported to a new folder generated in the `OutputFolder`. If no
 ## Downloads & Documentation
 
 [You can download the binaries directly from Dangl**Docu**](https://docs.dangl-it.com/Projects/Dangl.SevDeskExport).
+
+## Configuration
+
+The list of resources to export from your sevDesk account are defined in a file called `SevDeskApiExportOptions.json`, which must be placed next to the executable. If this file
+is not found, then default values will be used that should export all the data from your account. Please see the [GitHub repository](https://github.com/GeorgDangl/Dangl.SevDeskExport) for an example of this file.
+
