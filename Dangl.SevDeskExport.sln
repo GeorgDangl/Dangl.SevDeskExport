@@ -8,9 +8,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{064060EA-15E3-4872-B887-626384C96194}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		docfx.json = docfx.json
 		GitVersion.yml = GitVersion.yml
 		LICENSE.md = LICENSE.md
 		README.md = README.md
+		toc.yml = toc.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{9B0EA0B9-7608-4EDE-9140-73CCC5CC24D8}"

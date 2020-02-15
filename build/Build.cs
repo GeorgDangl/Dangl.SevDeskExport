@@ -4,15 +4,21 @@ using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
+using Nuke.Common.Tools.DocFX;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
+using Nuke.WebDocu;
 using System;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.IO.TextTasks;
+using static Nuke.Common.Tools.DocFX.DocFXTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
+using static Nuke.WebDocu.WebDocuTasks;
 
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
@@ -23,6 +29,9 @@ class Build : NukeBuild
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
+    [Parameter] readonly string DocuApiKey;
+    [Parameter] readonly string DocuBaseUrl = "https://docs.dangl-it.com";
+
     [Solution] readonly Solution Solution;
     [GitRepository] readonly GitRepository GitRepository;
     [GitVersion] readonly GitVersion GitVersion;
@@ -30,14 +39,16 @@ class Build : NukeBuild
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath TestsDirectory => RootDirectory / "tests";
     AbsolutePath OutputDirectory => RootDirectory / "output";
+    AbsolutePath DocFxFile => RootDirectory / "docfx.json";
 
     Target Clean => _ => _
         .Before(Restore)
         .Executes(() =>
         {
-            SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
-            TestsDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
+            SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(d => EnsureCleanDirectory(d));
+            TestsDirectory.GlobDirectories("**/bin", "**/obj").ForEach(d => EnsureCleanDirectory(d));
             EnsureCleanDirectory(OutputDirectory);
+            EnsureCleanDocFxArtifactx();
         });
 
     Target Restore => _ => _
@@ -90,25 +101,35 @@ namespace Dangl.SevDeskExport
 
     Target Publish => _ => _
         .DependsOn(Clean)
-         .Executes(() =>
-         {
-             foreach (var publishTarget in PublishTargets)
-             {
-                 var tempPublishPath = OutputDirectory / "TempPublish";
-                 EnsureCleanDirectory(tempPublishPath);
-                 var zipPath = OutputDirectory / $"{publishTarget[0]}.zip";
-                 DotNetPublish(x => x
-                     .SetWorkingDirectory(SourceDirectory / "Dangl.SevDeskExport")
-                     .SetSelfContained(true)
-                     .SetConfiguration(Configuration.Release)
-                     .SetRuntime(publishTarget[1])
-                     .SetOutput(tempPublishPath)
-                     .SetFileVersion(GitVersion.AssemblySemFileVer)
-                     .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                     .SetInformationalVersion(GitVersion.InformationalVersion));
-                 ZipFile.CreateFromDirectory(tempPublishPath, zipPath);
-             }
-         });
+        .Executes(() =>
+        {
+            foreach (var publishTarget in PublishTargets)
+            {
+                var tempPublishPath = OutputDirectory / "TempPublish";
+                EnsureCleanDirectory(tempPublishPath);
+                var zipPath = OutputDirectory / $"{publishTarget[0]}.zip";
+                DotNetPublish(x => x
+                    .SetWorkingDirectory(SourceDirectory / "Dangl.SevDeskExport")
+                    .SetSelfContained(true)
+                    .SetConfiguration(Configuration.Release)
+                    .SetRuntime(publishTarget[1])
+                    .SetOutput(tempPublishPath)
+                    .SetFileVersion(GitVersion.AssemblySemFileVer)
+                    .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                    .SetInformationalVersion(GitVersion.InformationalVersion)
+                    .When(publishTarget[1] == "ubuntu-x64", c => c.SetArgumentConfigurator(a => a
+                       .Add("/p:PublishTrimmed=true")
+                       .Add("/p:PublishSingleFile=true")
+                       .Add("/p:DebugType=None")))
+                    .When(publishTarget[1] != "ubuntu-x64", c => c.SetArgumentConfigurator(a => a
+                       .Add("/p:PublishTrimmed=true")
+                       .Add("/p:PublishSingleFile=true")
+                       .Add("/p:DebugType=None")
+                       .Add("/p:PublishReadyToRun=true")))
+                    );
+                ZipFile.CreateFromDirectory(tempPublishPath, zipPath);
+            }
+        });
 
     string[][] PublishTargets => new string[][]
              {
@@ -116,4 +137,54 @@ namespace Dangl.SevDeskExport
                 new [] { "CLI_Windows_x64", "win-x64"},
                 new [] { "CLI_Linux_Ubuntu_x86", "ubuntu-x64"}
              };
+    Target BuildDocFxMetadata => _ => _
+        .DependsOn(Clean)
+        .Executes(() =>
+        {
+            DocFXMetadata(x => x
+                .SetProjects(DocFxFile)
+                .SetLogLevel(DocFXLogLevel.Warning));
+        });
+
+    Target BuildDocumentation => _ => _
+        .DependsOn(Clean)
+        .DependsOn(BuildDocFxMetadata)
+        .Executes(() =>
+        {
+            // Using README.md as index.md
+            if (File.Exists(RootDirectory / "index.md"))
+            {
+                File.Delete(RootDirectory / "index.md");
+            }
+
+            File.Copy(RootDirectory / "README.md", RootDirectory / "index.md");
+
+            DocFXBuild(x => x
+                .SetConfigFile(DocFxFile)
+                .SetLogLevel(DocFXLogLevel.Warning));
+
+            File.Delete(RootDirectory / "index.md");
+            EnsureCleanDocFxArtifactx();
+        });
+
+    void EnsureCleanDocFxArtifactx()
+    {
+        DeleteDirectory(RootDirectory / "obj");
+    }
+
+    Target UploadDocumentation => _ => _
+         .DependsOn(BuildDocumentation)
+         .DependsOn(Publish)
+         .Requires(() => DocuApiKey)
+         .Requires(() => DocuBaseUrl)
+         .Executes(() =>
+         {
+             WebDocu(s => s
+                 .SetDocuBaseUrl(DocuBaseUrl)
+                 .SetDocuApiKey(DocuApiKey)
+                 .SetSourceDirectory(OutputDirectory / "docs")
+                 .SetVersion(GitVersion.NuGetVersion)
+                 .SetAssetFilePaths(PublishTargets.Select(t => (OutputDirectory / $"{t[0]}.zip").ToString()).ToArray())
+             );
+         });
 }
