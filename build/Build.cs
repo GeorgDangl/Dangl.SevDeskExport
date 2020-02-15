@@ -1,4 +1,5 @@
 using Nuke.Common;
+using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
@@ -23,6 +24,13 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.GitHub.GitHubTasks;
 using static Nuke.WebDocu.WebDocuTasks;
 
+[GitHubActions(
+    "continuous",
+    GitHubActionsImage.WindowsServer2019,
+    On = new[] { GitHubActionsTrigger.Push },
+    InvokedTargets = new[] { nameof(UploadDocumentation), nameof(PublishGitHubRelease) },
+    ImportGitHubTokenAs = nameof(GitHubAuthenticationToken),
+    ImportSecrets = new[] { nameof(DocuApiKey) })]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 class Build : NukeBuild
