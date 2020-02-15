@@ -114,6 +114,7 @@ namespace Dangl.SevDeskExport
 
     Target Publish => _ => _
         .DependsOn(Clean)
+        .DependsOn(GenerateVersionService)
         .Executes(() =>
         {
             foreach (var publishTarget in PublishTargets)
