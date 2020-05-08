@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Dangl.SevDeskExport
 {
@@ -106,6 +108,24 @@ namespace Dangl.SevDeskExport
             }
 
             return true;
+        }
+
+        public async Task<(Stream file, string fileName)> DownloadDocumentAsync(string documentId)
+        {
+            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Document/{documentId}/download?token={_apiToken}";
+            var httpResponse = await _httpClient.GetAsync(downloadUrl).ConfigureAwait(false);
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Error downloading document with id: " + documentId);
+                throw new Exception("Error downloading document with id: " + documentId);
+            }
+
+            var responseString = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var responseJson = JObject.Parse(responseString);
+            var base64Content = responseJson["objects"]["content"].ToString();
+            var originalFileName = responseJson["objects"]["filename"].ToString();
+            var binary = Convert.FromBase64String(base64Content);
+            return (new MemoryStream(binary), originalFileName);
         }
     }
 }

@@ -30,6 +30,7 @@ using static Nuke.WebDocu.WebDocuTasks;
     On = new[] { GitHubActionsTrigger.Push },
     InvokedTargets = new[] { nameof(UploadDocumentation), nameof(PublishGitHubRelease) },
     ImportGitHubTokenAs = nameof(GitHubAuthenticationToken),
+    AutoGenerate = false,
     ImportSecrets = new[] { nameof(DocuApiKey) })]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
