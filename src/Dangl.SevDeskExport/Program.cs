@@ -18,7 +18,7 @@ namespace Dangl.SevDeskExport
                     try
                     {
                         var exporter = new Exporter(options);
-                        await exporter.ExportSevDeskDataAndWriteToDisk().ConfigureAwait(false);
+                        await exporter.ExportSevDeskDataAndWriteToDiskAsync().ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {

@@ -3,15 +3,16 @@
 [![Actions Status](https://github.com/GeorgDangl/Dangl.SevDeskExport/workflows/continuous/badge.svg)](https://github.com/GeorgDangl/Dangl.SevDeskExport/actions)  
 [![Built with Nuke](http://nuke.build/rounded)](https://www.nuke.build) 
 
-This is a small CLI tool that exports all data from your sevDesk account.
+This is a small CLI tool that exports all data from your sevDesk account. Documents for invoices and vouchers are also exported, but only for a single month. This is useful when you're doing monthly exports for handover to your accountant.
+It will not export recurring inbound vouchers.
 
 ## CLI Usage
 
 Simply execute the converter, e.g. on Windows:
 
-    Dangl.SevDeskExport.exe -t <ApiToken> -f <OutputFolder>
+    Dangl.SevDeskExport.exe -t <ApiToken> -d <Date> -f <OutputFolder>
 
-The data will be exported to a new folder generated in the `OutputFolder`. If no folder is specified, it's placed relative to the executable.
+The data will be exported to a new folder generated in the `OutputFolder`. If no folder is specified, it's placed relative to the executable. The `Date` must be in format `MM/yyyy`, e.g. `05/2020` and will be used to export documents only for this month.
 
 ## Downloads & Documentation
 
