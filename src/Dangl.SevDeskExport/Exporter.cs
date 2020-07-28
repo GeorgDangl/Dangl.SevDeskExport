@@ -83,12 +83,13 @@ namespace Dangl.SevDeskExport
                 _apiExportOptions.DocumentExportMonth, 1, 0, 0, 0, TimeSpan.Zero));
             _startDate = new DateTimeOffset(_apiExportOptions.DocumentExportYear,
                 _apiExportOptions.DocumentExportMonth, 1, 0, 0, 0, utcOffset);
-            var endDate = _startDate.AddMonths(1);
 
             Console.WriteLine("Downloading invoices...");
             await DownloadInvoicesAsync().ConfigureAwait(false);
-            Console.Write("Downloading vouchers...");
+            Console.WriteLine("Downloading vouchers...");
             await DownloadVouchersAsync().ConfigureAwait(false);
+            Console.WriteLine("Downloading credit notes...");
+            await DownloadCreditNotesAsync().ConfigureAwait(false);
         }
 
         private async Task DownloadInvoicesAsync()
@@ -138,6 +139,39 @@ namespace Dangl.SevDeskExport
 
                 var fileName = $"Beleg {voucherDate:yyyyMMdd} {voucher["invoiceNumber"]}" +
                     (string.IsNullOrWhiteSpace(supplierName) ? string.Empty : $" - {supplierName}");
+                await DownloadDocumentAndSaveFileAsync(documentId, fileName).ConfigureAwait(false);
+            }
+        }
+
+        // Credit note = Stornorechnung in German
+        private async Task DownloadCreditNotesAsync()
+        {
+            foreach (var invoice in _sevDeskDataByModelName["Invoice"])
+            {
+                var invoiceDateString = invoice["invoiceDate"].ToString();
+                var invoiceDate = DateTimeOffset.Parse(invoiceDateString, null);
+                if (invoiceDate < _startDate || invoiceDate > _startDate.AddMonths(1))
+                {
+                    continue;
+                }
+
+                if (invoice["invoiceType"] == null
+                    || invoice["invoiceType"].ToString() != "SR")
+                {
+                    continue;
+                }
+
+                var document = _sevDeskDataByModelName["Document"]
+                    // It should never be null for an invoice
+                    .FirstOrDefault(d => d["baseObject"] != null && d["baseObject"]["id"].ToString() == invoice["id"].ToString());
+                if (document == null)
+                {
+                    Console.Write("Found no document for credit note (invoice) with id " + invoice["id"]);
+                }
+
+                var documentId = document["id"].ToString();
+                var contactName = GetContactName(invoice, "contact");
+                var fileName = $"Stornorechnung {invoiceDate:yyyyMMdd} {invoice["invoiceNumber"]} - {contactName}";
                 await DownloadDocumentAndSaveFileAsync(documentId, fileName).ConfigureAwait(false);
             }
         }
