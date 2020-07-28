@@ -127,5 +127,23 @@ namespace Dangl.SevDeskExport
             var binary = Convert.FromBase64String(base64Content);
             return (new MemoryStream(binary), originalFileName);
         }
+
+        public async Task<(Stream file, string fileName)> DownloadInvoiceAsPdfAsync(string invoiceId)
+        {
+            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Invoice/{invoiceId}/getPdf?token={_apiToken}";
+            var httpResponse = await _httpClient.GetAsync(downloadUrl).ConfigureAwait(false);
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Error downloading invoice with id: " + invoiceId);
+                throw new Exception("Error downloading invoice with id: " + invoiceId);
+            }
+
+            var responseString = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var responseJson = JObject.Parse(responseString);
+            var base64Content = responseJson["objects"]["content"].ToString();
+            var originalFileName = responseJson["objects"]["filename"].ToString();
+            var binary = Convert.FromBase64String(base64Content);
+            return (new MemoryStream(binary), originalFileName);
+        }
     }
 }

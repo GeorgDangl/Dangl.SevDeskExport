@@ -161,18 +161,9 @@ namespace Dangl.SevDeskExport
                     continue;
                 }
 
-                var document = _sevDeskDataByModelName["Document"]
-                    // It should never be null for an invoice
-                    .FirstOrDefault(d => d["baseObject"] != null && d["baseObject"]["id"].ToString() == invoice["id"].ToString());
-                if (document == null)
-                {
-                    Console.Write("Found no document for credit note (invoice) with id " + invoice["id"]);
-                }
-
-                var documentId = document["id"].ToString();
                 var contactName = GetContactName(invoice, "contact");
                 var fileName = $"Stornorechnung {invoiceDate:yyyyMMdd} {invoice["invoiceNumber"]} - {contactName}";
-                await DownloadDocumentAndSaveFileAsync(documentId, fileName).ConfigureAwait(false);
+                await DownloadInvoiceAsPdfByIdAndSaveFileAsync(invoice["id"].ToString(), fileName).ConfigureAwait(false);
             }
         }
 
@@ -194,6 +185,17 @@ namespace Dangl.SevDeskExport
             }
 
             return contactName;
+        }
+
+        private async Task DownloadInvoiceAsPdfByIdAndSaveFileAsync(string invoiceId, string fileName)
+        {
+            var invoiceDownload = await _sevDeskExporter.DownloadInvoiceAsPdfAsync(invoiceId).ConfigureAwait(false);
+            var exportPath = Path.Combine(_documentsBasePath, $"{fileName} - {invoiceDownload.fileName}".Replace('/', '_').Replace('\\', '_'));
+            using (var fs = File.Create(exportPath))
+            {
+                await invoiceDownload.file.CopyToAsync(fs).ConfigureAwait(false);
+            }
+            invoiceDownload.file.Dispose();
         }
 
         private async Task DownloadDocumentAndSaveFileAsync(string documentId, string fileName)
