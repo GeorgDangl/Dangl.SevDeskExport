@@ -83,12 +83,13 @@ namespace Dangl.SevDeskExport
                 _apiExportOptions.DocumentExportMonth, 1, 0, 0, 0, TimeSpan.Zero));
             _startDate = new DateTimeOffset(_apiExportOptions.DocumentExportYear,
                 _apiExportOptions.DocumentExportMonth, 1, 0, 0, 0, utcOffset);
-            var endDate = _startDate.AddMonths(1);
 
             Console.WriteLine("Downloading invoices...");
             await DownloadInvoicesAsync().ConfigureAwait(false);
-            Console.Write("Downloading vouchers...");
+            Console.WriteLine("Downloading vouchers...");
             await DownloadVouchersAsync().ConfigureAwait(false);
+            Console.WriteLine("Downloading credit notes...");
+            await DownloadCreditNotesAsync().ConfigureAwait(false);
         }
 
         private async Task DownloadInvoicesAsync()
@@ -142,6 +143,30 @@ namespace Dangl.SevDeskExport
             }
         }
 
+        // Credit note = Stornorechnung in German
+        private async Task DownloadCreditNotesAsync()
+        {
+            foreach (var invoice in _sevDeskDataByModelName["Invoice"])
+            {
+                var invoiceDateString = invoice["invoiceDate"].ToString();
+                var invoiceDate = DateTimeOffset.Parse(invoiceDateString, null);
+                if (invoiceDate < _startDate || invoiceDate > _startDate.AddMonths(1))
+                {
+                    continue;
+                }
+
+                if (invoice["invoiceType"] == null
+                    || invoice["invoiceType"].ToString() != "SR")
+                {
+                    continue;
+                }
+
+                var contactName = GetContactName(invoice, "contact");
+                var fileName = $"Stornorechnung {invoiceDate:yyyyMMdd} {invoice["invoiceNumber"]} - {contactName}";
+                await DownloadInvoiceAsPdfByIdAndSaveFileAsync(invoice["id"].ToString(), fileName).ConfigureAwait(false);
+            }
+        }
+
         private string GetContactName(JObject baseObject, string typeIdentifier)
         {
             var contactName = string.Empty;
@@ -160,6 +185,17 @@ namespace Dangl.SevDeskExport
             }
 
             return contactName;
+        }
+
+        private async Task DownloadInvoiceAsPdfByIdAndSaveFileAsync(string invoiceId, string fileName)
+        {
+            var invoiceDownload = await _sevDeskExporter.DownloadInvoiceAsPdfAsync(invoiceId).ConfigureAwait(false);
+            var exportPath = Path.Combine(_documentsBasePath, $"{fileName} - {invoiceDownload.fileName}".Replace('/', '_').Replace('\\', '_'));
+            using (var fs = File.Create(exportPath))
+            {
+                await invoiceDownload.file.CopyToAsync(fs).ConfigureAwait(false);
+            }
+            invoiceDownload.file.Dispose();
         }
 
         private async Task DownloadDocumentAndSaveFileAsync(string documentId, string fileName)
