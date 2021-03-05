@@ -96,18 +96,20 @@ namespace Dangl.SevDeskExport
         {
             foreach (var invoice in _sevDeskDataByModelName["Invoice"])
             {
-                var invoiceDateString = invoice["invoiceDate"].ToString();
-                var invoiceDate = DateTimeOffset.Parse(invoiceDateString, null);
-                if (invoiceDate < _startDate || invoiceDate > _startDate.AddMonths(1))
+                if (!CheckIfElementIsInDateRange(invoice))
                 {
                     continue;
                 }
+
                 if (invoice["sendDate"] == null
                     || invoice["sendDate"].Type == JTokenType.Null)
                 {
                     // Not sent invoices don't have documents attached
                     continue;
                 }
+
+                var invoiceDateString = invoice["invoiceDate"].ToString();
+                var invoiceDate = DateTimeOffset.Parse(invoiceDateString, null);
 
                 var document = _sevDeskDataByModelName["Document"]
                     // It should never be null for an invoice
@@ -123,8 +125,7 @@ namespace Dangl.SevDeskExport
         {
             foreach (var voucher in _sevDeskDataByModelName["Voucher"].Where(v => v["voucherDate"] != null))
             {
-                var voucherDate = DateTimeOffset.Parse(voucher["voucherDate"].ToString(), null);
-                if (voucherDate < _startDate || voucherDate > _startDate.AddMonths(1))
+                if (!CheckIfElementIsInDateRange(voucher))
                 {
                     continue;
                 }
@@ -134,6 +135,16 @@ namespace Dangl.SevDeskExport
                 {
                     continue;
                 }
+
+                var recurringDateString = voucher["recurringStartDate"]?.ToString();
+                if (!string.IsNullOrWhiteSpace(recurringDateString) && !CheckIfDateStringIsInRange(recurringDateString))
+                {
+                    // Recurring vouchers are only exported once, for the month in which they were created
+                    continue;
+                }
+
+                var voucherDateString = voucher["voucherDate"].ToString();
+                var voucherDate = DateTimeOffset.Parse(voucherDateString, null);
 
                 var supplierName = GetContactName(voucher, "supplier");
 
@@ -148,12 +159,13 @@ namespace Dangl.SevDeskExport
         {
             foreach (var invoice in _sevDeskDataByModelName["Invoice"])
             {
-                var invoiceDateString = invoice["invoiceDate"].ToString();
-                var invoiceDate = DateTimeOffset.Parse(invoiceDateString, null);
-                if (invoiceDate < _startDate || invoiceDate > _startDate.AddMonths(1))
+                if (!CheckIfElementIsInDateRange(invoice))
                 {
                     continue;
                 }
+
+                var invoiceDateString = invoice["invoiceDate"].ToString();
+                var invoiceDate = DateTimeOffset.Parse(invoiceDateString, null);
 
                 if (invoice["invoiceType"] == null
                     || invoice["invoiceType"].ToString() != "SR")
@@ -214,6 +226,33 @@ namespace Dangl.SevDeskExport
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Dangl IT GmbH sevDesk Export www.dangl-it.com");
             return httpClient;
+        }
+
+        private bool CheckIfElementIsInDateRange(JObject element)
+        {
+            // There are other properties storing the date in sevDesk:
+            // 'payDate', when a voucher was payed
+            // 'update' when an element was modified
+            // 'invoiceDate'
+            // 'voucherDate'
+
+            if (CheckIfDateStringIsInRange(element["create"].ToString()))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool CheckIfDateStringIsInRange(string date)
+        {
+            var parsedDate = DateTimeOffset.Parse(date, null);
+            if (parsedDate >= _startDate && parsedDate <= _startDate.AddMonths(1))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
