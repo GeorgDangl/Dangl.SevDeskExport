@@ -101,10 +101,13 @@ namespace Dangl.SevDeskExport
                     continue;
                 }
 
-                if (invoice["sendDate"] == null
+                if ((invoice["sendDate"] == null
                     || invoice["sendDate"].Type == JTokenType.Null)
+                    && (invoice["accountIntervall"] == null || invoice["accountIntervall"].Type == JTokenType.Null))
                 {
                     // Not sent invoices don't have documents attached
+                    // but interval invoices should still be included, since sevDesk
+                    // doesn't seem to set the `sendDate` property for automatically sent invoices
                     continue;
                 }
 
