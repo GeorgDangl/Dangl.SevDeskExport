@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -243,6 +243,18 @@ namespace Dangl.SevDeskExport
             // 'voucherDate'
 
             if (CheckIfDateStringIsInRange(element["create"].ToString()))
+            {
+                return true;
+            }
+            else if (element["sendDate"] != null && CheckIfDateStringIsInRange(element["create"].ToString()))
+            {
+                return true;
+            }
+            else if (element["invoiceDate"] != null && CheckIfDateStringIsInRange(element["invoiceDate"].ToString()))
+            {
+                return true;
+            }
+            else if (element["voucherDate"] != null && CheckIfDateStringIsInRange(element["voucherDate"].ToString()))
             {
                 return true;
             }
