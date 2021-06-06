@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -116,11 +116,14 @@ namespace Dangl.SevDeskExport
 
                 var document = _sevDeskDataByModelName["Document"]
                     // It should never be null for an invoice
-                    .First(d => d["baseObject"] != null && d["baseObject"]["id"].ToString() == invoice["id"].ToString());
-                var documentId = document["id"].ToString();
-                var contactName = GetContactName(invoice, "contact");
-                var fileName = $"Rechnung {invoiceDate:yyyyMMdd} {invoice["invoiceNumber"]} - {contactName}";
-                await DownloadDocumentAndSaveFileAsync(documentId, fileName).ConfigureAwait(false);
+                    .FirstOrDefault(d => d["baseObject"] != null && d["baseObject"]["id"].ToString() == invoice["id"].ToString());
+                if (document != null)
+                {
+                    var documentId = document["id"].ToString();
+                    var contactName = GetContactName(invoice, "contact");
+                    var fileName = $"Rechnung {invoiceDate:yyyyMMdd} {invoice["invoiceNumber"]} - {contactName}";
+                    await DownloadDocumentAndSaveFileAsync(documentId, fileName).ConfigureAwait(false);
+                }
             }
         }
 
