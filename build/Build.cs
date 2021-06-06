@@ -39,7 +39,7 @@ class Build : NukeBuild
     public static int Main() => Execute<Build>(x => x.Compile);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
-    readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+    readonly string Configuration = IsLocalBuild ? "Debug" : "Release";
 
     [Parameter] readonly string DocuApiKey;
     [Parameter] readonly string DocuBaseUrl = "https://docs.dangl-it.com";
@@ -124,19 +124,19 @@ namespace Dangl.SevDeskExport
                 EnsureCleanDirectory(tempPublishPath);
                 var zipPath = OutputDirectory / $"{publishTarget[0]}.zip";
                 DotNetPublish(x => x
-                    .SetWorkingDirectory(SourceDirectory / "Dangl.SevDeskExport")
+                    .SetProcessWorkingDirectory(SourceDirectory / "Dangl.SevDeskExport")
                     .SetSelfContained(true)
-                    .SetConfiguration(Configuration.Release)
+                    .SetConfiguration("Release")
                     .SetRuntime(publishTarget[1])
                     .SetOutput(tempPublishPath)
                     .SetFileVersion(GitVersion.AssemblySemFileVer)
                     .SetAssemblyVersion(GitVersion.AssemblySemVer)
                     .SetInformationalVersion(GitVersion.InformationalVersion)
-                    .When(publishTarget[1] == "ubuntu-x64", c => c.SetArgumentConfigurator(a => a
+                    .When(publishTarget[1] == "ubuntu-x64", c => c.SetProcessArgumentConfigurator(a => a
                        .Add("/p:PublishTrimmed=true")
                        .Add("/p:PublishSingleFile=true")
                        .Add("/p:DebugType=None")))
-                    .When(publishTarget[1] != "ubuntu-x64", c => c.SetArgumentConfigurator(a => a
+                    .When(publishTarget[1] != "ubuntu-x64", c => c.SetProcessArgumentConfigurator(a => a
                        .Add("/p:PublishTrimmed=true")
                        .Add("/p:PublishSingleFile=true")
                        .Add("/p:DebugType=None")
