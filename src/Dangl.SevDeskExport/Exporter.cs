@@ -142,11 +142,19 @@ namespace Dangl.SevDeskExport
                     continue;
                 }
 
-                var recurringDateString = voucher["recurringStartDate"]?.ToString();
-                if (!string.IsNullOrWhiteSpace(recurringDateString) && !CheckIfDateStringIsInRange(recurringDateString))
+                var voucherType = voucher["voucherType"]?.ToString();
+                // There's a bug in sevDesk, when you upload a new document via drag & drop into the vouchers section, it
+                // sets the 'recurringStartDate' even for regular vouchers. This was acknowledged by sevDesk support, but sounded
+                // like a won't fix issue, so we'll need to make sure that vouchers are actually of the 'Recurring Voucher' type
+                // before we check the recurring start data
+                if (!string.IsNullOrWhiteSpace(voucherType) && voucherType.Equals("RV", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    // Recurring vouchers are only exported once, for the month in which they were created
-                    continue;
+                    var recurringDateString = voucher["recurringStartDate"]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(recurringDateString) && !CheckIfDateStringIsInRange(recurringDateString))
+                    {
+                        // Recurring vouchers are only exported once, for the month in which they were created
+                        continue;
+                    }
                 }
 
                 var voucherDateString = voucher["voucherDate"].ToString();

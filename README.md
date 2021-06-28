@@ -1,7 +1,6 @@
 # Dangl.SevDeskExport
 
 [![Actions Status](https://github.com/GeorgDangl/Dangl.SevDeskExport/workflows/continuous/badge.svg)](https://github.com/GeorgDangl/Dangl.SevDeskExport/actions)  
-[![Built with Nuke](http://nuke.build/rounded)](https://www.nuke.build) 
 
 This is a small CLI tool that exports all data from your sevDesk account. Documents for invoices and vouchers are also exported, but only for a single month. This is useful when you're doing monthly exports for handover to your accountant.
 It will not export recurring inbound vouchers. Exports will also download credit notes (_Stornorechnungen_ in German).

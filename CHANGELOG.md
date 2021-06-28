@@ -2,6 +2,9 @@
 
 All notable changes to **Dangl.SevDeskExport** are documented here.
 
+## v1.4.3:
+- Fixed a bug that would not export all vouchers, when the sevDesk API returned the `recurringStartDate` for non-recurring vouchers
+
 ## v1.4.1:
 - Fixed the invoice download feature to also export invoices that were sent directly via sevDesk. They don't have their `sendDate` specified
 
