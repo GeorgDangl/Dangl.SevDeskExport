@@ -111,18 +111,28 @@ namespace Dangl.SevDeskExport
                     continue;
                 }
 
+                if (invoice["status"]?.ToString() == "100")
+                {
+                    // Status 100 means the invoice has not been sent yet
+                    continue;
+                }
+
                 var invoiceDateString = invoice["invoiceDate"].ToString();
                 var invoiceDate = DateTimeOffset.Parse(invoiceDateString, null);
 
                 var document = _sevDeskDataByModelName["Document"]
                     // It should never be null for an invoice
                     .FirstOrDefault(d => d["baseObject"] != null && d["baseObject"]["id"].ToString() == invoice["id"].ToString());
+                var contactName = GetContactName(invoice, "contact");
+                var fileName = $"Rechnung {invoiceDate:yyyyMMdd} {invoice["invoiceNumber"]} - {contactName}";
                 if (document != null)
                 {
                     var documentId = document["id"].ToString();
-                    var contactName = GetContactName(invoice, "contact");
-                    var fileName = $"Rechnung {invoiceDate:yyyyMMdd} {invoice["invoiceNumber"]} - {contactName}";
                     await DownloadDocumentAndSaveFileAsync(documentId, fileName).ConfigureAwait(false);
+                }
+                else
+                {
+                    await DownloadInvoiceAndSaveFileAsync(invoice["id"].ToString(), fileName).ConfigureAwait(false);
                 }
             }
         }
@@ -233,6 +243,17 @@ namespace Dangl.SevDeskExport
                 await documentDownload.file.CopyToAsync(fs).ConfigureAwait(false);
             }
             documentDownload.file.Dispose();
+        }
+
+        private async Task DownloadInvoiceAndSaveFileAsync(string invoiceId, string fileName)
+        {
+            var invoiceDownload = await _sevDeskExporter.DownloadInvoiceAsync(invoiceId).ConfigureAwait(false);
+            var exportPath = Path.Combine(_documentsBasePath, $"{fileName} - {invoiceDownload.fileName}".Replace('/', '_').Replace('\\', '_'));
+            using (var fs = File.Create(exportPath))
+            {
+                await invoiceDownload.file.CopyToAsync(fs).ConfigureAwait(false);
+            }
+            invoiceDownload.file.Dispose();
         }
 
         private static HttpClient GetHttpClient()
