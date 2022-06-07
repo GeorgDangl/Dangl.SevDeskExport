@@ -6,11 +6,11 @@ namespace Dangl.SevDeskExport
     [System.CodeDom.Compiler.GeneratedCode("GitVersionBuild", "")]
     public static class VersionInfo
     {
-        public static string Version => "0.1.1-beta0003";
-        public static string CommitInfo => "Branch.develop.Sha.93b5bf748705bb89bd18132fffe7b13c2212ad95";
-        public static string CommitDate => "2020-02-14";
-        public static string CommitHash => "93b5bf748705bb89bd18132fffe7b13c2212ad95";
-        public static string InformationalVersion => "0.1.1-beta.3+Branch.develop.Sha.93b5bf748705bb89bd18132fffe7b13c2212ad95";
-        public static DateTime BuildDateUtc => new DateTime(2020, 2, 14, 21, 34, 54, DateTimeKind.Utc);
+        public static string Version => "1.5.0-beta0005";
+        public static string CommitInfo => "Branch.develop.Sha.bfdf9de9805bab36c8bca4e14a7467cd32adc44e";
+        public static string CommitDate => "2022-06-07";
+        public static string CommitHash => "bfdf9de9805bab36c8bca4e14a7467cd32adc44e";
+        public static string InformationalVersion => "1.5.0-beta.5+Branch.develop.Sha.bfdf9de9805bab36c8bca4e14a7467cd32adc44e";
+        public static DateTime BuildDateUtc => new DateTime(2022, 6, 7, 20, 0, 36, DateTimeKind.Utc);
     }
 }
