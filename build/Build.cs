@@ -26,7 +26,7 @@ using static Nuke.WebDocu.WebDocuTasks;
 
 [GitHubActions(
     "continuous",
-    GitHubActionsImage.WindowsServer2019,
+    GitHubActionsImage.WindowsLatest,
     On = new[] { GitHubActionsTrigger.Push },
     InvokedTargets = new[] { nameof(UploadDocumentation), nameof(PublishGitHubRelease) },
     EnableGitHubToken = true,

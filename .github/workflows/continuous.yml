@@ -20,8 +20,8 @@ on: [push]
 
 jobs:
   windows-2019:
-    name: windows-2019
-    runs-on: windows-2019
+    name: windows-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
       - name: Run './build.cmd UploadDocumentation PublishGitHubRelease'
