@@ -26,10 +26,10 @@ using static Nuke.WebDocu.WebDocuTasks;
 
 [GitHubActions(
     "continuous",
-    GitHubActionsImage.WindowsServer2019,
+    GitHubActionsImage.WindowsLatest,
     On = new[] { GitHubActionsTrigger.Push },
     InvokedTargets = new[] { nameof(UploadDocumentation), nameof(PublishGitHubRelease) },
-    ImportGitHubTokenAs = nameof(GitHubAuthenticationToken),
+    EnableGitHubToken = true,
     AutoGenerate = false,
     ImportSecrets = new[] { nameof(DocuApiKey) })]
 [CheckBuildProjectConfigurations]

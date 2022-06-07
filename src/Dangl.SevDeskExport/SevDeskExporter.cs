@@ -128,6 +128,22 @@ namespace Dangl.SevDeskExport
             return (new MemoryStream(binary), originalFileName);
         }
 
+        public async Task<(Stream file, string fileName)> DownloadInvoiceAsync(string invoiceId)
+        {
+            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Invoice/{invoiceId}/getPdf?preventSendBy=true&download=true&token={_apiToken}";
+            var httpResponse = await _httpClient.GetAsync(downloadUrl).ConfigureAwait(false);
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Error downloading invoice with id: " + invoiceId);
+                throw new Exception("Error downloading invoice with id: " + invoiceId);
+            }
+
+            var responseContent = await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var originalFileName = httpResponse.Content.Headers.ContentDisposition.FileName.Trim('"');
+            
+            return (responseContent, originalFileName);
+        }
+
         public async Task<(Stream file, string fileName)> DownloadInvoiceAsPdfAsync(string invoiceId)
         {
             var downloadUrl = $"{SEVDESK_API_BASE_URL}/Invoice/{invoiceId}/getPdf?token={_apiToken}";
