@@ -32,6 +32,12 @@ using static Nuke.WebDocu.WebDocuTasks;
     EnableGitHubToken = true,
     AutoGenerate = false,
     ImportSecrets = new[] { nameof(DocuApiKey) })]
+[GitHubActions(
+    "ubuntu",
+    GitHubActionsImage.UbuntuLatest,
+    On = new[] { GitHubActionsTrigger.Push },
+    InvokedTargets = new[] { nameof(Compile) },
+    AutoGenerate = false)]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 class Build : NukeBuild
@@ -43,7 +49,6 @@ class Build : NukeBuild
 
     [Parameter] readonly string DocuApiKey;
     [Parameter] readonly string DocuBaseUrl = "https://docs.dangl-it.com";
-    [Parameter] readonly string GitHubAuthenticationToken;
 
     [Solution] readonly Solution Solution;
     [GitRepository] readonly GitRepository GitRepository;
@@ -154,7 +159,7 @@ namespace Dangl.SevDeskExport
              };
 
     Target PublishGitHubRelease => _ => _
-         .Requires(() => GitHubAuthenticationToken)
+         .Requires(() => GitHubActions.Instance)
          .OnlyWhenDynamic(() => GitVersion.BranchName.Equals("master") || GitVersion.BranchName.Equals("origin/master"))
          .Executes(async () =>
          {
@@ -173,7 +178,7 @@ namespace Dangl.SevDeskExport
                      .SetRepositoryName(repositoryInfo.repositoryName)
                      .SetRepositoryOwner(repositoryInfo.gitHubOwner)
                      .SetTag(releaseTag)
-                     .SetToken(GitHubAuthenticationToken));
+                     .SetToken(GitHubActions.Instance.Token));
          });
 
     Target BuildDocFxMetadata => _ => _
