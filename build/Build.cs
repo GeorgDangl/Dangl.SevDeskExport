@@ -159,10 +159,10 @@ namespace Dangl.SevDeskExport
              };
 
     Target PublishGitHubRelease => _ => _
-         .Requires(() => GitHubActions.Instance)
          .OnlyWhenDynamic(() => GitVersion.BranchName.Equals("master") || GitVersion.BranchName.Equals("origin/master"))
          .Executes(async () =>
          {
+             Assert.NotNull(GitHubActions.Instance?.Token);
              var releaseTag = $"v{GitVersion.MajorMinorPatch}";
 
              var changeLogSectionEntries = ExtractChangelogSectionNotes(ChangeLogFile);
