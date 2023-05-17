@@ -125,7 +125,7 @@ namespace Dangl.SevDeskExport
             var base64Content = responseJson["objects"]["content"].ToString();
             var originalFileName = responseJson["objects"]["filename"].ToString();
             var binary = Convert.FromBase64String(base64Content);
-            return (new MemoryStream(binary), originalFileName);
+            return (new MemoryStream(binary), $"{documentId}_{originalFileName}");
         }
 
         public async Task<(Stream file, string fileName)> DownloadInvoiceAsync(string invoiceId)
@@ -141,7 +141,7 @@ namespace Dangl.SevDeskExport
             var responseContent = await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var originalFileName = httpResponse.Content.Headers.ContentDisposition.FileName.Trim('"');
             
-            return (responseContent, originalFileName);
+            return (responseContent, $"{invoiceId}_{originalFileName}");
         }
 
         public async Task<(Stream file, string fileName)> DownloadInvoiceAsPdfAsync(string invoiceId)
@@ -159,7 +159,7 @@ namespace Dangl.SevDeskExport
             var base64Content = responseJson["objects"]["content"].ToString();
             var originalFileName = responseJson["objects"]["filename"].ToString();
             var binary = Convert.FromBase64String(base64Content);
-            return (new MemoryStream(binary), originalFileName);
+            return (new MemoryStream(binary), $"{invoiceId}_{originalFileName}");
         }
     }
 }
