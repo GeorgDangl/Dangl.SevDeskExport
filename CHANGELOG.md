@@ -2,6 +2,9 @@
 
 All notable changes to **Dangl.SevDeskExport** are documented here.
 
+## v1.5.1:
+- Document and invoice ids are now exported as part of the file name when downloading
+
 ## v1.5.0:
 - Fixed a bug and reworked the invoice download, to ensure that also invoices without a linked document can be downloaded correctly
 

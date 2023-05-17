@@ -9,19 +9,19 @@
 #
 #     - To trigger manual generation invoke:
 #
-#         nuke --generate-configuration GitHubActions_continuous --host GitHubActions
+#         nuke --generate-configuration GitHubActions_ubuntu --host GitHubActions
 #
 # </auto-generated>
 # ------------------------------------------------------------------------------
 
-name: continuous
+name: ubuntu
 
 on: [push]
 
 jobs:
-  windows-latest:
-    name: windows-latest
-    runs-on: windows-latest
+  ubuntu-latest:
+    name: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: Cache .nuke/temp, ~/.nuget/packages
@@ -31,8 +31,5 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: Run './build.cmd UploadDocumentation PublishGitHubRelease'
-        run: ./build.cmd UploadDocumentation PublishGitHubRelease
-        env:
-          DocuApiKey: ${{ secrets.DOCU_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run './build.cmd Compile'
+        run: ./build.cmd Compile
