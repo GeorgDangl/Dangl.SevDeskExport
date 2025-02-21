@@ -2,6 +2,9 @@
 
 All notable changes to **Dangl.SevDeskExport** are documented here.
 
+## v1.6.0:
+- Updated the authentication to be compatible with the new sevDesk API requirements
+
 ## v1.5.1:
 - Document and invoice ids are now exported as part of the file name when downloading
 
