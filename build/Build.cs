@@ -133,7 +133,7 @@ namespace Dangl.SevDeskExport
              {
                 new [] { "CLI_Windows_x86", "win-x86"},
                 new [] { "CLI_Windows_x64", "win-x64"},
-                new [] { "CLI_Linux_Ubuntu_x86", "ubuntu-x64"}
+                new [] { "CLI_Linux_x86", "linux-x64"}
              };
 
     Target PublishGitHubRelease => _ => _
