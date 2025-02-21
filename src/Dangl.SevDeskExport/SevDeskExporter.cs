@@ -10,16 +10,13 @@ namespace Dangl.SevDeskExport
 {
     public class SevDeskExporter
     {
-        private readonly string _apiToken;
         private readonly List<SevDeskDataApiEndpoint> _apiOptions;
         private readonly HttpClient _httpClient;
         private const string SEVDESK_API_BASE_URL = "https://my.sevdesk.de/api/v1";
 
-        public SevDeskExporter(string apiToken,
-            List<SevDeskDataApiEndpoint> apiOptions,
+        public SevDeskExporter(List<SevDeskDataApiEndpoint> apiOptions,
             HttpClient httpClient)
         {
-            _apiToken = apiToken;
             _apiOptions = apiOptions;
             _httpClient = httpClient;
         }
@@ -31,7 +28,7 @@ namespace Dangl.SevDeskExport
             {
                 var startTime = DateTime.UtcNow;
                 Console.WriteLine($"Downloading {options.ModelName}...");
-                var resourceUrl = $"{SEVDESK_API_BASE_URL}/{options.RelativeUrl}?token={_apiToken}";
+                var resourceUrl = $"{SEVDESK_API_BASE_URL}/{options.RelativeUrl}";
                 if (options.AdditionalParameters != null)
                 {
                     foreach (var param in options.AdditionalParameters)
@@ -64,7 +61,7 @@ namespace Dangl.SevDeskExport
                         lastOffset += limit;
                         try
                         {
-                            var response = await _httpClient.GetStringAsync(urlWithOffset).ConfigureAwait(false);
+                            var response = await _httpClient.GetStringAsync(GetUrlWithCorrectQueryStringFormat(urlWithOffset)).ConfigureAwait(false);
                             var data = (JObject.Parse(response)["objects"] as JArray).Select(j => j as JObject).ToList();
 
                             if (!AddRangeIfNewIds(apiResponseValues, data))
@@ -74,7 +71,7 @@ namespace Dangl.SevDeskExport
                         }
                         catch
                         {
-                            Console.WriteLine($"Error while accessing the following url:{urlWithOffset.Replace(_apiToken, "**TOKEN**", StringComparison.InvariantCultureIgnoreCase)}");
+                            Console.WriteLine($"Error while accessing the following url:{urlWithOffset}");
                             throw;
                         }
                     }
@@ -112,7 +109,7 @@ namespace Dangl.SevDeskExport
 
         public async Task<(Stream file, string fileName)> DownloadDocumentAsync(string documentId)
         {
-            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Document/{documentId}/download?token={_apiToken}";
+            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Document/{documentId}/download";
             var httpResponse = await _httpClient.GetAsync(downloadUrl).ConfigureAwait(false);
             if (!httpResponse.IsSuccessStatusCode)
             {
@@ -130,7 +127,7 @@ namespace Dangl.SevDeskExport
 
         public async Task<(Stream file, string fileName)> DownloadInvoiceAsync(string invoiceId)
         {
-            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Invoice/{invoiceId}/getPdf?preventSendBy=true&download=true&token={_apiToken}";
+            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Invoice/{invoiceId}/getPdf?preventSendBy=true&download=true";
             var httpResponse = await _httpClient.GetAsync(downloadUrl).ConfigureAwait(false);
             if (!httpResponse.IsSuccessStatusCode)
             {
@@ -146,7 +143,7 @@ namespace Dangl.SevDeskExport
 
         public async Task<(Stream file, string fileName)> DownloadInvoiceAsPdfAsync(string invoiceId)
         {
-            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Invoice/{invoiceId}/getPdf?token={_apiToken}";
+            var downloadUrl = $"{SEVDESK_API_BASE_URL}/Invoice/{invoiceId}/getPdf";
             var httpResponse = await _httpClient.GetAsync(downloadUrl).ConfigureAwait(false);
             if (!httpResponse.IsSuccessStatusCode)
             {
@@ -160,6 +157,16 @@ namespace Dangl.SevDeskExport
             var originalFileName = responseJson["objects"]["filename"].ToString();
             var binary = Convert.FromBase64String(base64Content);
             return (new MemoryStream(binary), $"{invoiceId}_{originalFileName}");
+        }
+
+        private static string GetUrlWithCorrectQueryStringFormat(string url)
+        {
+            if (url.Contains("&") && !url.Contains("?"))
+            {
+                return url.Substring(0, url.IndexOf('&')) + "?" + url.Substring(url.IndexOf('&') + 1);
+            }
+
+            return url;
         }
     }
 }

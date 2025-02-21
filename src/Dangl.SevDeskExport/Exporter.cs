@@ -29,7 +29,7 @@ namespace Dangl.SevDeskExport
         {
             var options = await SevDeskApiOptionsGenerator.GetSevDeskApiEndpointOptionsAsync().ConfigureAwait(false);
             _httpClient = GetHttpClient();
-            _sevDeskExporter = new SevDeskExporter(_apiExportOptions.SevDeskApiToken, options, _httpClient);
+            _sevDeskExporter = new SevDeskExporter(options, _httpClient);
 
             var apiOptionsPath = Path.Combine(_basePath, "ApiExportOptions.json");
             using (var fs = File.CreateText(apiOptionsPath))
@@ -256,10 +256,11 @@ namespace Dangl.SevDeskExport
             invoiceDownload.file.Dispose();
         }
 
-        private static HttpClient GetHttpClient()
+        private HttpClient GetHttpClient()
         {
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Dangl IT GmbH sevDesk Export www.dangl-it.com");
+            httpClient.DefaultRequestHeaders.Add("Authorization", _apiExportOptions.SevDeskApiToken);
             return httpClient;
         }
 

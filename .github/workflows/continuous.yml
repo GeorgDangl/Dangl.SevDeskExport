@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Cache .nuke/temp, ~/.nuget/packages
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             .nuke/temp
@@ -34,5 +34,5 @@ jobs:
       - name: Run './build.cmd UploadDocumentation PublishGitHubRelease'
         run: ./build.cmd UploadDocumentation PublishGitHubRelease
         env:
-          DocuApiKey: ${{ secrets.DOCU_API_KEY }}
+          DocuApiKey: ${{ secrets.DOCUAPIKEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

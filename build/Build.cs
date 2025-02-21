@@ -1,13 +1,12 @@
 using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
-using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
-using Nuke.Common.Tools.DocFX;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
+using Nuke.Common.Utilities;
 using Nuke.Common.Utilities.Collections;
 using Nuke.GitHub;
 using Nuke.WebDocu;
@@ -16,30 +15,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using static Nuke.Common.ChangeLog.ChangelogTasks;
-using static Nuke.Common.IO.FileSystemTasks;
-using static Nuke.Common.IO.PathConstruction;
-using static Nuke.Common.IO.TextTasks;
-using static Nuke.Common.Tools.DocFX.DocFXTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.GitHub.GitHubTasks;
 using static Nuke.WebDocu.WebDocuTasks;
 
-[GitHubActions(
-    "continuous",
-    GitHubActionsImage.WindowsLatest,
-    On = new[] { GitHubActionsTrigger.Push },
-    InvokedTargets = new[] { nameof(UploadDocumentation), nameof(PublishGitHubRelease) },
-    EnableGitHubToken = true,
-    AutoGenerate = false,
-    ImportSecrets = new[] { nameof(DocuApiKey) })]
-[GitHubActions(
-    "ubuntu",
-    GitHubActionsImage.UbuntuLatest,
-    On = new[] { GitHubActionsTrigger.Push },
-    InvokedTargets = new[] { nameof(Compile) },
-    AutoGenerate = false)]
-[CheckBuildProjectConfigurations]
-[UnsetVisualStudioEnvironmentVariables]
 class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Compile);
@@ -52,7 +31,7 @@ class Build : NukeBuild
 
     [Solution] readonly Solution Solution;
     [GitRepository] readonly GitRepository GitRepository;
-    [GitVersion(Framework = "netcoreapp3.1")] readonly GitVersion GitVersion;
+    [GitVersion] readonly GitVersion GitVersion;
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath TestsDirectory => RootDirectory / "tests";
@@ -64,10 +43,9 @@ class Build : NukeBuild
         .Before(Restore)
         .Executes(() =>
         {
-            SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(d => EnsureCleanDirectory(d));
-            TestsDirectory.GlobDirectories("**/bin", "**/obj").ForEach(d => EnsureCleanDirectory(d));
-            EnsureCleanDirectory(OutputDirectory);
-            EnsureCleanDocFxArtifactx();
+            SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(d => d.CreateOrCleanDirectory());
+            TestsDirectory.GlobDirectories("**/bin", "**/obj").ForEach(d => d.CreateOrCleanDirectory());
+            OutputDirectory.CreateOrCleanDirectory();
         });
 
     Target Restore => _ => _
@@ -101,7 +79,7 @@ namespace Dangl.SevDeskExport
         public static DateTime BuildDateUtc => {currentDateUtc};
     }}
 }}";
-            WriteAllText(filePath, content);
+            filePath.WriteAllText(content);
         });
 
     Target Compile => _ => _
@@ -126,7 +104,7 @@ namespace Dangl.SevDeskExport
             foreach (var publishTarget in PublishTargets)
             {
                 var tempPublishPath = OutputDirectory / "TempPublish";
-                EnsureCleanDirectory(tempPublishPath);
+                tempPublishPath.CreateOrCleanDirectory();
                 var zipPath = OutputDirectory / $"{publishTarget[0]}.zip";
                 DotNetPublish(x => x
                     .SetProcessWorkingDirectory(SourceDirectory / "Dangl.SevDeskExport")
@@ -137,15 +115,15 @@ namespace Dangl.SevDeskExport
                     .SetFileVersion(GitVersion.AssemblySemFileVer)
                     .SetAssemblyVersion(GitVersion.AssemblySemVer)
                     .SetInformationalVersion(GitVersion.InformationalVersion)
-                    .When(publishTarget[1] == "ubuntu-x64", c => c.SetProcessArgumentConfigurator(a => a
-                       .Add("/p:PublishTrimmed=true")
-                       .Add("/p:PublishSingleFile=true")
-                       .Add("/p:DebugType=None")))
-                    .When(publishTarget[1] != "ubuntu-x64", c => c.SetProcessArgumentConfigurator(a => a
-                       .Add("/p:PublishTrimmed=true")
-                       .Add("/p:PublishSingleFile=true")
-                       .Add("/p:DebugType=None")
-                       .Add("/p:PublishReadyToRun=true")))
+                    .When(publishTarget[1] == "ubuntu-x64", c => c
+                        .AddProcessAdditionalArguments("/p:PublishTrimmed=true")
+                        .AddProcessAdditionalArguments("/p:PublishSingleFile=true")
+                        .AddProcessAdditionalArguments("/p:DebugType=None"))
+                    .When(publishTarget[1] != "ubuntu-x64", c => c
+                        .AddProcessAdditionalArguments("/p:PublishTrimmed=true")
+                        .AddProcessAdditionalArguments("/p:PublishSingleFile=true")
+                        .AddProcessAdditionalArguments("/p:DebugType=None")
+                        .AddProcessAdditionalArguments("/p:PublishReadyToRun=true"))
                     );
                 ZipFile.CreateFromDirectory(tempPublishPath, zipPath);
             }
@@ -155,12 +133,12 @@ namespace Dangl.SevDeskExport
              {
                 new [] { "CLI_Windows_x86", "win-x86"},
                 new [] { "CLI_Windows_x64", "win-x64"},
-                new [] { "CLI_Linux_Ubuntu_x86", "ubuntu-x64"}
+                new [] { "CLI_Linux_x86", "linux-x64"}
              };
 
     Target PublishGitHubRelease => _ => _
          .OnlyWhenDynamic(() => GitVersion.BranchName.Equals("master") || GitVersion.BranchName.Equals("origin/master"))
-         .Executes(async () =>
+         .Executes(() =>
          {
              Assert.NotNull(GitHubActions.Instance?.Token);
              var releaseTag = $"v{GitVersion.MajorMinorPatch}";
@@ -172,22 +150,24 @@ namespace Dangl.SevDeskExport
 
              var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
 
-             await PublishRelease(x => x
+             PublishRelease(x => x
                      .SetCommitSha(GitVersion.Sha)
                      .SetReleaseNotes(completeChangeLog)
                      .SetRepositoryName(repositoryInfo.repositoryName)
                      .SetRepositoryOwner(repositoryInfo.gitHubOwner)
                      .SetTag(releaseTag)
-                     .SetToken(GitHubActions.Instance.Token));
+                     .SetToken(GitHubActions.Instance.Token))
+             .ConfigureAwait(false)
+             .GetAwaiter()
+             .GetResult();
          });
 
     Target BuildDocFxMetadata => _ => _
         .DependsOn(Clean)
         .Executes(() =>
         {
-            DocFXMetadata(x => x
-                .SetProjects(DocFxFile)
-                .SetLogLevel(DocFXLogLevel.Warning));
+            var docFxPath = NuGetToolPathResolver.GetPackageExecutable("docfx", "tools/net8.0/any/docfx.dll");
+            DotNet($"{docFxPath} metadata {DocFxFile}");
         });
 
     Target BuildDocumentation => _ => _
@@ -203,18 +183,11 @@ namespace Dangl.SevDeskExport
 
             File.Copy(RootDirectory / "README.md", RootDirectory / "index.md");
 
-            DocFXBuild(x => x
-                .SetConfigFile(DocFxFile)
-                .SetLogLevel(DocFXLogLevel.Warning));
+            var docFxPath = NuGetToolPathResolver.GetPackageExecutable("docfx", "tools/net8.0/any/docfx.dll");
+            DotNet($"{docFxPath} {DocFxFile}");
 
             File.Delete(RootDirectory / "index.md");
-            EnsureCleanDocFxArtifactx();
         });
-
-    void EnsureCleanDocFxArtifactx()
-    {
-        DeleteDirectory(RootDirectory / "obj");
-    }
 
     Target UploadDocumentation => _ => _
          .DependsOn(BuildDocumentation)
@@ -223,7 +196,7 @@ namespace Dangl.SevDeskExport
          .Requires(() => DocuBaseUrl)
          .Executes(() =>
          {
-             var markdownChangelog = ReadAllText(ChangeLogFile);
+             var markdownChangelog = ChangeLogFile.ReadAllText();
 
              WebDocu(s => s
                  .SetDocuBaseUrl(DocuBaseUrl)

@@ -25,11 +25,16 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Cache .nuke/temp, ~/.nuget/packages
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: | 
+            8.0.x
+            9.0.x
       - name: Run './build.cmd Compile'
         run: ./build.cmd Compile
