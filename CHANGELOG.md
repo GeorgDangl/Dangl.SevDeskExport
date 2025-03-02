@@ -2,6 +2,9 @@
 
 All notable changes to **Dangl.SevDeskExport** are documented here.
 
+## v1.6.1:
+- Fixed a bug that would prevent the app from starting after being compiled to a single-file-executable
+
 ## v1.6.0:
 - Updated the authentication to be compatible with the new sevDesk API requirements
 
