@@ -53,6 +53,7 @@ namespace Dangl.SevDeskExport
             }
 
             await ExportVouchersAsync().ConfigureAwait(false);
+            await DownloadContactAttachmentsAsync().ConfigureAwait(false);
         }
 
         private void SetExportPaths()
@@ -90,6 +91,41 @@ namespace Dangl.SevDeskExport
             await DownloadVouchersAsync().ConfigureAwait(false);
             Console.WriteLine("Downloading credit notes...");
             await DownloadCreditNotesAsync().ConfigureAwait(false);
+        }
+
+        private async Task DownloadContactAttachmentsAsync()
+        {
+            foreach (var feed in _sevDeskDataByModelName["Feed"])
+            {
+                if (!CheckIfElementIsInDateRange(feed))
+                {
+                    continue;
+                }
+
+                if (feed["objectAction"] == null ||
+                    feed["objectAction"]["objectName"] == null
+                    || feed["objectAction"]["objectName"].ToString() != "Document")
+                {
+                    // We only want feeds that are related to documents
+                    continue;
+                }
+
+                var documentId = feed["objectAction"]["id"]?.ToString();
+
+                var invoicdocumentDateString = feed["create"].ToString();
+                var documentDate = DateTimeOffset.Parse(invoicdocumentDateString, null);
+
+                var document = _sevDeskDataByModelName["Document"]
+                    // It should never be null for an invoice
+                    .FirstOrDefault(d => d["id"].ToString() == documentId);
+
+                var contactName = GetContactName(feed, "object");
+                if (document != null)
+                {
+                    var fileName = $"Dokument {documentDate:yyyyMMdd} - {contactName} - {document["filename"]}.{document["extension"]}";
+                    await DownloadDocumentAndSaveFileAsync(documentId, fileName).ConfigureAwait(false);
+                }
+            }
         }
 
         private async Task DownloadInvoicesAsync()
@@ -276,6 +312,10 @@ namespace Dangl.SevDeskExport
             {
                 return true;
             }
+            else if (CheckIfDateStringIsInRange(element["update"]?.ToString()))
+            {
+                return true;
+            }
             else if (element["sendDate"] != null && CheckIfDateStringIsInRange(element["create"].ToString()))
             {
                 return true;
@@ -294,6 +334,11 @@ namespace Dangl.SevDeskExport
 
         private bool CheckIfDateStringIsInRange(string date)
         {
+            if (string.IsNullOrWhiteSpace(date))
+            {
+                return false;
+            }
+
             var parsedDate = DateTimeOffset.Parse(date, null);
             if (parsedDate >= _startDate && parsedDate <= _startDate.AddMonths(1))
             {

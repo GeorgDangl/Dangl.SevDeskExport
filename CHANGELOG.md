@@ -2,6 +2,9 @@
 
 All notable changes to **Dangl.SevDeskExport** are documented here.
 
+## v1.7.0:
+- Added support for exporting customer documents from the feeds
+
 ## v1.6.1:
 - Fixed a bug that would prevent the app from starting after being compiled to a single-file-executable
 
