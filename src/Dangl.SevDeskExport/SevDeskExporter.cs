@@ -61,7 +61,8 @@ namespace Dangl.SevDeskExport
                         lastOffset += limit;
                         try
                         {
-                            var response = await _httpClient.GetStringAsync(GetUrlWithCorrectQueryStringFormat(urlWithOffset)).ConfigureAwait(false);
+                            var requestUrl = GetUrlWithCorrectQueryStringFormat(urlWithOffset);
+                            var response = await GetStringResponseWithRetriesAsync(requestUrl, 5);
                             var data = (JObject.Parse(response)["objects"] as JArray).Select(j => j as JObject).ToList();
 
                             if (!AddRangeIfNewIds(apiResponseValues, data))
@@ -83,6 +84,31 @@ namespace Dangl.SevDeskExport
                 previousValues.Add(options.ModelName, apiResponseValues);
                 yield return (options.ModelName, apiResponseValues);
             }
+        }
+
+        private async Task<string> GetStringResponseWithRetriesAsync(string requestUrl, int maxRetries)
+        {
+            var currentTries = 0;
+            var hasData = false;
+            while (currentTries <= maxRetries && !hasData)
+            {
+                currentTries++;
+                try
+                {
+                    var response = await _httpClient.GetStringAsync(requestUrl).ConfigureAwait(false);
+                    return response;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error while accessing the following url: {requestUrl}{Environment.NewLine}{e}");
+                    if (currentTries >= maxRetries)
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            throw new Exception("Failed to get data after multiple retries.");
         }
 
         private static bool AddRangeIfNewIds(List<JObject> existingValues, List<JObject> possiblyNewValues)

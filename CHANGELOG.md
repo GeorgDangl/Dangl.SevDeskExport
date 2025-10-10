@@ -2,6 +2,9 @@
 
 All notable changes to **Dangl.SevDeskExport** are documented here.
 
+## v1.7.1:
+- Added a retry logic when downloading API items to account for temporary sevDesk API issues
+
 ## v1.7.0:
 - Added support for exporting customer documents from the feeds
 
