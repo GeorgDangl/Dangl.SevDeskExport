@@ -312,7 +312,9 @@ namespace Dangl.SevDeskExport
             {
                 return true;
             }
-            else if (CheckIfDateStringIsInRange(element["update"]?.ToString()))
+            else if (element["invoiceDate"] == null
+                && element["voucherDate"] == null &&
+                CheckIfDateStringIsInRange(element["update"]?.ToString()))
             {
                 return true;
             }
@@ -340,7 +342,9 @@ namespace Dangl.SevDeskExport
             }
 
             var parsedDate = DateTimeOffset.Parse(date, null);
-            if (parsedDate >= _startDate && parsedDate <= _startDate.AddMonths(1))
+            if (parsedDate >= _startDate
+                && parsedDate <= _startDate.AddMonths(1)
+                && parsedDate.Month == _startDate.Month)
             {
                 return true;
             }
