@@ -2,6 +2,9 @@
 
 All notable changes to **Dangl.SevDeskExport** are documented here.
 
+## v1.7.2:
+- Fixed a bug that would download invoices and vouchers based on their `updated` property, which resulted in invoices and vouchers being downloaded for multiple months
+
 ## v1.7.1:
 - Added a retry logic when downloading API items to account for temporary sevDesk API issues
 
