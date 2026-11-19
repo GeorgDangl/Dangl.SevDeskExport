@@ -170,6 +170,9 @@ namespace Dangl.SevDeskExport
             DotNet($"{docFxPath} metadata {DocFxFile}");
         });
 
+    Target TestMarkdownDocumentation => _ => _
+        .Executes(() => MarkdownDocumentationTests.Run(OutputDirectory / "markdown-tests"));
+
     Target BuildDocumentation => _ => _
         .DependsOn(Clean)
         .DependsOn(BuildDocFxMetadata)
@@ -187,6 +190,9 @@ namespace Dangl.SevDeskExport
             DotNet($"{docFxPath} {DocFxFile}");
 
             File.Delete(RootDirectory / "index.md");
+
+            MarkdownDocumentation.Build(RootDirectory, OutputDirectory / "docs",
+                OutputDirectory / "docs-markdown", requireApi: true);
         });
 
     Target UploadDocumentation => _ => _
@@ -198,13 +204,15 @@ namespace Dangl.SevDeskExport
          {
              var markdownChangelog = ChangeLogFile.ReadAllText();
 
-             WebDocu(s => s
-                 .SetDocuBaseUrl(DocuBaseUrl)
-                 .SetDocuApiKey(DocuApiKey)
-                 .SetSourceDirectory(OutputDirectory / "docs")
-                 .SetVersion(GitVersion.NuGetVersion)
-                 .SetMarkdownChangelog(markdownChangelog)
-                 .SetAssetFilePaths(PublishTargets.Select(t => (OutputDirectory / $"{t[0]}.zip").ToString()).ToArray())
-             );
+             MarkdownDocumentation.Publish(DocuBaseUrl, DocuApiKey, GitVersion.NuGetVersion,
+                 OutputDirectory / "docs-markdown.zip",
+                 () => WebDocu(s => s
+                     .SetDocuBaseUrl(DocuBaseUrl)
+                     .SetDocuApiKey(DocuApiKey)
+                     .SetSourceDirectory(OutputDirectory / "docs")
+                     .SetVersion(GitVersion.NuGetVersion)
+                     .SetMarkdownChangelog(markdownChangelog)
+                     .SetAssetFilePaths(PublishTargets.Select(t => (OutputDirectory / $"{t[0]}.zip").ToString()).ToArray())
+                 ));
          });
 }
