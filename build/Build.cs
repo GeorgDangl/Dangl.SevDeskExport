@@ -1,25 +1,25 @@
-using Nuke.Common;
-using Nuke.Common.CI.GitHubActions;
-using Nuke.Common.Git;
-using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
-using Nuke.Common.Tooling;
-using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.GitVersion;
-using Nuke.Common.Utilities;
-using Nuke.Common.Utilities.Collections;
-using Nuke.GitHub;
-using Nuke.WebDocu;
+using Fallout.Common;
+using Fallout.Common.CI.GitHubActions;
+using Fallout.Common.Git;
+using Fallout.Common.IO;
+using Fallout.Common.ProjectModel;
+using Fallout.Common.Tooling;
+using Fallout.Common.Tools.DotNet;
+using Fallout.Common.Tools.GitVersion;
+using Fallout.Common.Utilities;
+using Fallout.Common.Utilities.Collections;
+using Fallout.GitHub;
+using Fallout.WebDocu;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using static Nuke.Common.ChangeLog.ChangelogTasks;
-using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using static Nuke.GitHub.GitHubTasks;
-using static Nuke.WebDocu.WebDocuTasks;
+using static Fallout.Common.ChangeLog.ChangelogTasks;
+using static Fallout.Common.Tools.DotNet.DotNetTasks;
+using static Fallout.GitHub.GitHubTasks;
+using static Fallout.WebDocu.WebDocuTasks;
 
-class Build : NukeBuild
+class Build : FalloutBuild
 {
     public static int Main() => Execute<Build>(x => x.Compile);
 
@@ -166,7 +166,7 @@ namespace Dangl.SevDeskExport
         .DependsOn(Clean)
         .Executes(() =>
         {
-            var docFxPath = NuGetToolPathResolver.GetPackageExecutable("docfx", "tools/net8.0/any/docfx.dll");
+            var docFxPath = NuGetToolPathResolver.GetPackageExecutable("docfx", "tools/net10.0/any/docfx.dll");
             DotNet($"{docFxPath} metadata {DocFxFile}");
         });
 
@@ -186,13 +186,12 @@ namespace Dangl.SevDeskExport
 
             File.Copy(RootDirectory / "README.md", RootDirectory / "index.md");
 
-            var docFxPath = NuGetToolPathResolver.GetPackageExecutable("docfx", "tools/net8.0/any/docfx.dll");
+            var docFxPath = NuGetToolPathResolver.GetPackageExecutable("docfx", "tools/net10.0/any/docfx.dll");
             DotNet($"{docFxPath} {DocFxFile}");
+            MarkdownDocumentation.Create(DocFxFile, OutputDirectory / "docs-markdown");
 
             File.Delete(RootDirectory / "index.md");
 
-            MarkdownDocumentation.Build(RootDirectory, OutputDirectory / "docs",
-                OutputDirectory / "docs-markdown", requireApi: true);
         });
 
     Target UploadDocumentation => _ => _
@@ -204,15 +203,14 @@ namespace Dangl.SevDeskExport
          {
              var markdownChangelog = ChangeLogFile.ReadAllText();
 
-             MarkdownDocumentation.Publish(DocuBaseUrl, DocuApiKey, GitVersion.NuGetVersion,
-                 OutputDirectory / "docs-markdown.zip",
-                 () => WebDocu(s => s
-                     .SetDocuBaseUrl(DocuBaseUrl)
-                     .SetDocuApiKey(DocuApiKey)
-                     .SetSourceDirectory(OutputDirectory / "docs")
-                     .SetVersion(GitVersion.NuGetVersion)
-                     .SetMarkdownChangelog(markdownChangelog)
-                     .SetAssetFilePaths(PublishTargets.Select(t => (OutputDirectory / $"{t[0]}.zip").ToString()).ToArray())
-                 ));
+             WebDocu(s => s
+                 .SetDocuBaseUrl(DocuBaseUrl)
+                 .SetDocuApiKey(DocuApiKey)
+                 .SetMarkdownPackagePath(OutputDirectory / "docs-markdown.zip")
+                 .SetSourceDirectory(OutputDirectory / "docs")
+                 .SetVersion(GitVersion.NuGetVersion)
+                 .SetMarkdownChangelog(markdownChangelog)
+                 .SetAssetFilePaths(PublishTargets.Select(t => (OutputDirectory / $"{t[0]}.zip").ToString()).ToArray())
+             );
          });
 }

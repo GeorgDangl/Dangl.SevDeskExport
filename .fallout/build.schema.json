@@ -32,6 +32,7 @@
         "Publish",
         "PublishGitHubRelease",
         "Restore",
+        "TestMarkdownDocumentation",
         "UploadDocumentation"
       ]
     },
@@ -42,10 +43,11 @@
         "Verbose",
         "Normal",
         "Minimal",
-        "Quiet"
+        "Quiet",
+        "Information"
       ]
     },
-    "NukeBuild": {
+    "FalloutBuild": {
       "properties": {
         "Continue": {
           "type": "boolean",
@@ -61,7 +63,7 @@
         },
         "NoLogo": {
           "type": "boolean",
-          "description": "Disables displaying the NUKE logo"
+          "description": "Disables displaying the Fallout logo"
         },
         "Partition": {
           "type": "string",
@@ -99,6 +101,13 @@
         "Verbosity": {
           "description": "Logging verbosity during build execution. Default is 'Normal'",
           "$ref": "#/definitions/Verbosity"
+        },
+        "BuildProjectFile": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "description": "Path to the build project (.csproj) relative to the repository root. Defaults to 'build/_build.csproj' when unset. Read by the Fallout global tool's in-tool runner."
         }
       }
     }
@@ -123,7 +132,7 @@
       }
     },
     {
-      "$ref": "#/definitions/NukeBuild"
+      "$ref": "#/definitions/FalloutBuild"
     }
   ]
 }
