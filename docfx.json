@@ -14,6 +14,22 @@
         }
       ],
       "dest":"obj/api"
+    },
+    {
+      "src": [
+        {
+          "src": "./src",
+          "files": [
+            "Dangl.SevDeskExport/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ]
+        }
+      ],
+      "dest": "output/docs-markdown/obj/api",
+      "outputFormat": "markdown"
     }
   ],
   "build":{

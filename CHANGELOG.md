@@ -2,6 +2,9 @@
 
 All notable changes to **Dangl.SevDeskExport** are documented here.
 
+## v1.7.3:
+- **Dangl.SevDeskExport** now also produces Markdown documentation. This can be easily accessed by AI agents via the MCP server implementation in **Dangl**Docu.
+
 ## v1.7.2:
 - Fixed a bug that would download invoices and vouchers based on their `updated` property, which resulted in invoices and vouchers being downloaded for multiple months
 
